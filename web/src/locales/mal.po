@@ -550,9 +550,9 @@ msgstr "അവസാന സമയം"
 msgid "Node"
 msgstr "നോഡ്"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Spec.svelte
 #: src/lib/components/skeleton/BottomPanel.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
 #: src/routes/[node]/network/mdns/records/+page.svelte
 #: src/routes/[node]/storage/samba/audit-logs/+page.svelte
@@ -823,6 +823,7 @@ msgstr "കുറിപ്പ് സൃഷ്ടിച്ചു"
 msgid "Failed to create note"
 msgstr "കുറിപ്പ് സൃഷ്ടിക്കുന്നതിൽ പരാജയപ്പെട്ടു"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/Container/NetworkForm.svelte
@@ -861,7 +862,6 @@ msgstr "കുറിപ്പ് സൃഷ്ടിക്കുന്നതി�
 #: src/lib/components/skeleton/ResourceTreeToolbar.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
@@ -933,6 +933,7 @@ msgid "View"
 msgstr "കാണുക"
 
 #: src/lib/components/custom/Authentication/Passkeys.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/lib/components/custom/Disk/SmartSelfTest.svelte
 #: src/lib/components/skeleton/BottomPanel.svelte
@@ -949,7 +950,6 @@ msgstr "കാണുക"
 #: src/lib/components/skeleton/TreeViewCluster.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/+layout.svelte
 #: src/routes/[node]/container/[ocid]/+layout.svelte
@@ -992,13 +992,13 @@ msgstr "കാണുക"
 msgid "Delete"
 msgstr "ഇല്ലാതാക്കുക"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/lib/components/custom/Network/WireGuard/Server/PeerList.svelte
 #: src/lib/components/custom/ZFS/datasets/fs/Edit.svelte
 #: src/lib/components/custom/ZFS/datasets/volumes/Edit.svelte
 #: src/lib/components/custom/ZFS/pools/Edit.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/network/+page.svelte
 #: src/routes/[node]/container/[ocid]/storage/+page.svelte
@@ -1043,9 +1043,9 @@ msgstr "തിരുത്തുക"
 msgid "Bulk Delete"
 msgstr "മൊത്തമായി ഇല്ലാതാക്കുക"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/storage/+page.svelte
 #: src/routes/[node]/containers/networks/+page.svelte
@@ -1522,7 +1522,7 @@ msgstr "യൂസർ എഡിറ്റ് ചെയ്യുക - {0}"
 
 #: src/lib/components/custom/Authentication/LocalUserForm.svelte
 #: src/lib/components/custom/Authentication/PamUserForm.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "E-Mail"
 msgstr "ഇമെയിൽ"
@@ -3611,6 +3611,8 @@ msgstr "ഓട്ടോമാറ്റിക് ആയി തിരികെ മ
 msgid "Manual move back"
 msgstr "മാനുവൽ ആയി തിരികെ മാറ്റുക"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Disk/SmartSelfTest.svelte
 #: src/lib/components/custom/Jail/Packages/Monitoring.svelte
 #: src/lib/components/custom/Jail/Packages/Monitoring.svelte
@@ -3619,8 +3621,6 @@ msgstr "മാനുവൽ ആയി തിരികെ മാറ്റുക"
 #: src/lib/components/custom/System/Updates/Monitoring.svelte
 #: src/lib/components/custom/ZFS/datasets/snapshots/Jobs.svelte
 #: src/lib/components/custom/ZFS/pools/Scrub.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
@@ -6189,8 +6189,8 @@ msgstr "ഗ്രൂപ്പിലെ ഉപയോക്താക്കളെ �
 msgid "Default Sylve Group (sylve_g)"
 msgstr "ഡിഫോൾട്ട് സിൽവ് ഗ്രൂപ്പ് (sylve_g)"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/storage/iscsi/initiators/+page.svelte
 #: src/routes/[node]/storage/iscsi/targets/+page.svelte
@@ -6224,17 +6224,17 @@ msgstr "ഗ്രൂപ്പ് ഇല്ലാതാക്കുന്നത�
 msgid "Group deleted"
 msgstr "ഗ്രൂപ്പ് ഇല്ലാതാക്കി"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Last Usage"
 msgstr "അവസാന ഉപയോഗം"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Failed to delete user"
 msgstr "ഉപയോക്താവിനെ ഇല്ലാതാക്കുന്നതിൽ പരാജയപ്പെട്ടു"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "User deleted"
 msgstr "ഉപയോക്താവിനെ ഇല്ലാതാക്കി"
@@ -7727,8 +7727,8 @@ msgstr ""
 msgid "<0/> Passkey"
 msgstr ""
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Passkeys"
@@ -7995,12 +7995,12 @@ msgstr ""
 msgid "<0/> View Template"
 msgstr ""
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/skeleton/TreeViewCluster.svelte
 #: src/lib/components/skeleton/TreeViewCluster.svelte
-#: src/routes/[node]/jail/[ctid]/network/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
+#: src/routes/[node]/jail/[ctid]/network/+page.svelte
 msgid "Deleting..."
 msgstr ""
 
@@ -11031,7 +11031,7 @@ msgstr ""
 msgid "Importing…"
 msgstr ""
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Cannot delete this user"
 msgstr ""
@@ -11495,6 +11495,7 @@ msgstr ""
 msgid "Select shell"
 msgstr ""
 
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
 #: src/lib/components/custom/Authentication/PamUserForm.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
@@ -16933,7 +16934,7 @@ msgstr ""
 msgid "Creating Template"
 msgstr ""
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "View existing passkeys; registration is unavailable for this user"
 msgstr ""
@@ -23429,4 +23430,30 @@ msgstr ""
 #. 0: error
 #: src/routes/[node]/system/services/+page.svelte
 msgid "Failed to update Containers: {0}"
+msgstr ""
+
+#: src/routes/+layout.svelte
+msgid "OIDC sign-in was canceled"
+msgstr ""
+
+#: src/routes/+layout.svelte
+msgid "OIDC sign-in failed"
+msgstr ""
+
+#: src/routes/+layout.svelte
+msgid "OIDC callback is incomplete"
+msgstr ""
+
+#. 0: oidcProviderName
+#: src/lib/components/custom/Login.svelte
+msgid "Continue with {0}"
+msgstr ""
+
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
+msgid "Create OIDC User"
+msgstr ""
+
+#. 0: user?.username
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
+msgid "Edit OIDC User - {0}"
 msgstr ""

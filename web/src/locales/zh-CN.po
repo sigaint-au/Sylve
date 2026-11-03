@@ -550,9 +550,9 @@ msgstr "结束时间"
 msgid "Node"
 msgstr "节点"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Spec.svelte
 #: src/lib/components/skeleton/BottomPanel.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
 #: src/routes/[node]/network/mdns/records/+page.svelte
 #: src/routes/[node]/storage/samba/audit-logs/+page.svelte
@@ -823,6 +823,7 @@ msgstr "笔记已创建"
 msgid "Failed to create note"
 msgstr "创建笔记失败"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/Container/NetworkForm.svelte
@@ -861,7 +862,6 @@ msgstr "创建笔记失败"
 #: src/lib/components/skeleton/ResourceTreeToolbar.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
@@ -933,6 +933,7 @@ msgid "View"
 msgstr "查看"
 
 #: src/lib/components/custom/Authentication/Passkeys.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/lib/components/custom/Disk/SmartSelfTest.svelte
 #: src/lib/components/skeleton/BottomPanel.svelte
@@ -949,7 +950,6 @@ msgstr "查看"
 #: src/lib/components/skeleton/TreeViewCluster.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/+layout.svelte
 #: src/routes/[node]/container/[ocid]/+layout.svelte
@@ -992,13 +992,13 @@ msgstr "查看"
 msgid "Delete"
 msgstr "删除"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/lib/components/custom/Network/WireGuard/Server/PeerList.svelte
 #: src/lib/components/custom/ZFS/datasets/fs/Edit.svelte
 #: src/lib/components/custom/ZFS/datasets/volumes/Edit.svelte
 #: src/lib/components/custom/ZFS/pools/Edit.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/network/+page.svelte
 #: src/routes/[node]/container/[ocid]/storage/+page.svelte
@@ -1043,9 +1043,9 @@ msgstr "编辑"
 msgid "Bulk Delete"
 msgstr "批量删除"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/storage/+page.svelte
 #: src/routes/[node]/containers/networks/+page.svelte
@@ -1522,7 +1522,7 @@ msgstr "编辑用户 - {0}"
 
 #: src/lib/components/custom/Authentication/LocalUserForm.svelte
 #: src/lib/components/custom/Authentication/PamUserForm.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "E-Mail"
 msgstr "电子邮件"
@@ -3611,6 +3611,8 @@ msgstr "自动移回"
 msgid "Manual move back"
 msgstr "手动移回"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Disk/SmartSelfTest.svelte
 #: src/lib/components/custom/Jail/Packages/Monitoring.svelte
 #: src/lib/components/custom/Jail/Packages/Monitoring.svelte
@@ -3619,8 +3621,6 @@ msgstr "手动移回"
 #: src/lib/components/custom/System/Updates/Monitoring.svelte
 #: src/lib/components/custom/ZFS/datasets/snapshots/Jobs.svelte
 #: src/lib/components/custom/ZFS/pools/Scrub.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
@@ -6187,8 +6187,8 @@ msgstr "组内用户已修改"
 msgid "Default Sylve Group (sylve_g)"
 msgstr "默认 Sylve 组 (sylve_g)"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/storage/iscsi/initiators/+page.svelte
 #: src/routes/[node]/storage/iscsi/targets/+page.svelte
@@ -6222,17 +6222,17 @@ msgstr "删除组失败"
 msgid "Group deleted"
 msgstr "组已删除"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Last Usage"
 msgstr "最后使用"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Failed to delete user"
 msgstr "删除用户失败"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "User deleted"
 msgstr "用户已删除"
@@ -7724,8 +7724,8 @@ msgstr "实验性功能"
 msgid "<0/> Passkey"
 msgstr "<0/> Passkey"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Passkeys"
@@ -7992,12 +7992,12 @@ msgstr "创建 {0}"
 msgid "<0/> View Template"
 msgstr "<0/> 查看模板"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/skeleton/TreeViewCluster.svelte
 #: src/lib/components/skeleton/TreeViewCluster.svelte
-#: src/routes/[node]/jail/[ctid]/network/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
+#: src/routes/[node]/jail/[ctid]/network/+page.svelte
 msgid "Deleting..."
 msgstr "正在删除..."
 
@@ -11028,7 +11028,7 @@ msgstr ""
 msgid "Importing…"
 msgstr ""
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Cannot delete this user"
 msgstr ""
@@ -11492,6 +11492,7 @@ msgstr ""
 msgid "Select shell"
 msgstr ""
 
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
 #: src/lib/components/custom/Authentication/PamUserForm.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
@@ -16930,7 +16931,7 @@ msgstr ""
 msgid "Creating Template"
 msgstr ""
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "View existing passkeys; registration is unavailable for this user"
 msgstr ""
@@ -23426,4 +23427,30 @@ msgstr ""
 #. 0: error
 #: src/routes/[node]/system/services/+page.svelte
 msgid "Failed to update Containers: {0}"
+msgstr ""
+
+#: src/routes/+layout.svelte
+msgid "OIDC sign-in was canceled"
+msgstr ""
+
+#: src/routes/+layout.svelte
+msgid "OIDC sign-in failed"
+msgstr ""
+
+#: src/routes/+layout.svelte
+msgid "OIDC callback is incomplete"
+msgstr ""
+
+#. 0: oidcProviderName
+#: src/lib/components/custom/Login.svelte
+msgid "Continue with {0}"
+msgstr ""
+
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
+msgid "Create OIDC User"
+msgstr ""
+
+#. 0: user?.username
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
+msgid "Edit OIDC User - {0}"
 msgstr ""

@@ -550,9 +550,9 @@ msgstr "End Time"
 msgid "Node"
 msgstr "Node"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Spec.svelte
 #: src/lib/components/skeleton/BottomPanel.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
 #: src/routes/[node]/network/mdns/records/+page.svelte
 #: src/routes/[node]/storage/samba/audit-logs/+page.svelte
@@ -823,6 +823,7 @@ msgstr "Note created"
 msgid "Failed to create note"
 msgstr "Failed to create note"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/Container/NetworkForm.svelte
@@ -861,7 +862,6 @@ msgstr "Failed to create note"
 #: src/lib/components/skeleton/ResourceTreeToolbar.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
 #: src/routes/[node]/container/[ocid]/options/+page.svelte
@@ -933,6 +933,7 @@ msgid "View"
 msgstr "View"
 
 #: src/lib/components/custom/Authentication/Passkeys.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/lib/components/custom/Disk/SmartSelfTest.svelte
 #: src/lib/components/skeleton/BottomPanel.svelte
@@ -949,7 +950,6 @@ msgstr "View"
 #: src/lib/components/skeleton/TreeViewCluster.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/+layout.svelte
 #: src/routes/[node]/container/[ocid]/+layout.svelte
@@ -992,13 +992,13 @@ msgstr "View"
 msgid "Delete"
 msgstr "Delete"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Container/Create.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/lib/components/custom/Network/WireGuard/Server/PeerList.svelte
 #: src/lib/components/custom/ZFS/datasets/fs/Edit.svelte
 #: src/lib/components/custom/ZFS/datasets/volumes/Edit.svelte
 #: src/lib/components/custom/ZFS/pools/Edit.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/network/+page.svelte
 #: src/routes/[node]/container/[ocid]/storage/+page.svelte
@@ -1043,9 +1043,9 @@ msgstr "Edit"
 msgid "Bulk Delete"
 msgstr "Bulk Delete"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/DataCenter/Backups/Jobs/Page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/container/[ocid]/storage/+page.svelte
 #: src/routes/[node]/containers/networks/+page.svelte
@@ -1522,7 +1522,7 @@ msgstr "Edit User - {0}"
 
 #: src/lib/components/custom/Authentication/LocalUserForm.svelte
 #: src/lib/components/custom/Authentication/PamUserForm.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "E-Mail"
 msgstr "E-Mail"
@@ -3611,6 +3611,8 @@ msgstr "Auto move back"
 msgid "Manual move back"
 msgstr "Manual move back"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/custom/Disk/SmartSelfTest.svelte
 #: src/lib/components/custom/Jail/Packages/Monitoring.svelte
 #: src/lib/components/custom/Jail/Packages/Monitoring.svelte
@@ -3619,8 +3621,6 @@ msgstr "Manual move back"
 #: src/lib/components/custom/System/Updates/Monitoring.svelte
 #: src/lib/components/custom/ZFS/datasets/snapshots/Jobs.svelte
 #: src/lib/components/custom/ZFS/pools/Scrub.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
@@ -6189,8 +6189,8 @@ msgstr "Users modified in group"
 msgid "Default Sylve Group (sylve_g)"
 msgstr "Default Sylve Group (sylve_g)"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/storage/iscsi/initiators/+page.svelte
 #: src/routes/[node]/storage/iscsi/targets/+page.svelte
@@ -6224,17 +6224,17 @@ msgstr "Failed to delete group"
 msgid "Group deleted"
 msgstr "Group deleted"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Last Usage"
 msgstr "Last Usage"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Failed to delete user"
 msgstr "Failed to delete user"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "User deleted"
 msgstr "User deleted"
@@ -7727,8 +7727,8 @@ msgstr "Experimental Features"
 msgid "<0/> Passkey"
 msgstr "<0/> Passkey"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Passkeys"
@@ -7995,12 +7995,12 @@ msgstr "Create {0}"
 msgid "<0/> View Template"
 msgstr "<0/> View Template"
 
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/lib/components/skeleton/TreeViewCluster.svelte
 #: src/lib/components/skeleton/TreeViewCluster.svelte
-#: src/routes/[node]/jail/[ctid]/network/+page.svelte
 #: src/routes/[node]/authentication/groups/+page.svelte
-#: src/routes/[node]/authentication/users/local/+page.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
+#: src/routes/[node]/jail/[ctid]/network/+page.svelte
 msgid "Deleting..."
 msgstr "Deleting..."
 
@@ -11031,7 +11031,7 @@ msgstr "Leave blank to use System Auth (PAM)"
 msgid "Importing…"
 msgstr "Importing…"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "Cannot delete this user"
 msgstr "Cannot delete this user"
@@ -11495,6 +11495,7 @@ msgstr "Exec"
 msgid "Select shell"
 msgstr "Select shell"
 
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
 #: src/lib/components/custom/Authentication/PamUserForm.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
 #: src/routes/[node]/jail/[ctid]/packages/+page.svelte
@@ -16933,7 +16934,7 @@ msgstr "Saving Changes"
 msgid "Creating Template"
 msgstr "Creating Template"
 
-#: src/routes/[node]/authentication/users/local/+page.svelte
+#: src/lib/components/custom/Authentication/SylveUsersPage.svelte
 #: src/routes/[node]/authentication/users/pam/+page.svelte
 msgid "View existing passkeys; registration is unavailable for this user"
 msgstr "View existing passkeys; registration is unavailable for this user"
@@ -23434,3 +23435,29 @@ msgstr "Install podman first: pkg install podman cni-dnsname"
 #: src/routes/[node]/system/services/+page.svelte
 msgid "Failed to update Containers: {0}"
 msgstr "Failed to update Containers: {0}"
+
+#: src/routes/+layout.svelte
+msgid "OIDC sign-in was canceled"
+msgstr "OIDC sign-in was canceled"
+
+#: src/routes/+layout.svelte
+msgid "OIDC sign-in failed"
+msgstr "OIDC sign-in failed"
+
+#: src/routes/+layout.svelte
+msgid "OIDC callback is incomplete"
+msgstr "OIDC callback is incomplete"
+
+#. 0: oidcProviderName
+#: src/lib/components/custom/Login.svelte
+msgid "Continue with {0}"
+msgstr "Continue with {0}"
+
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
+msgid "Create OIDC User"
+msgstr "Create OIDC User"
+
+#. 0: user?.username
+#: src/lib/components/custom/Authentication/LocalUserForm.svelte
+msgid "Edit OIDC User - {0}"
+msgstr "Edit OIDC User - {0}"
