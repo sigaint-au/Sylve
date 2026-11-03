@@ -95,7 +95,13 @@ function showLoginFailure(
 	} else if (hasErrorCode(data, 'pam_auth_disabled')) {
 		message = 'PAM authentication is disabled';
 	} else if (hasErrorCode(data, 'user_not_registered_in_sylve')) {
-		message = 'This PAM account is not registered in Sylve';
+		message = 'This account is not registered in Sylve';
+	} else if (hasErrorCode(data, 'user_source_conflict')) {
+		message = 'This username is already assigned to another account source';
+	} else if (hasErrorCode(data, 'oidc_auth_disabled')) {
+		message = 'OIDC authentication is disabled';
+	} else if (hasErrorCode(data, 'oidc_requires_https')) {
+		message = 'OIDC sign-in requires HTTPS';
 	} else if (hasErrorCode(data, 'too_many_attempts')) {
 		message = 'Too many login attempts. Please try again later';
 	}
@@ -200,7 +206,11 @@ export async function login(
 	return false;
 }
 
-export async function getLoginConfig(): Promise<{ pamEnabled: boolean }> {
+export async function getLoginConfig(): Promise<{
+	pamEnabled: boolean;
+	oidcEnabled: boolean;
+	oidcProviderName: string;
+}> {
 	try {
 		const response = await fetch('/api/auth/login/config', {
 			method: 'GET'
@@ -209,13 +219,74 @@ export async function getLoginConfig(): Promise<{ pamEnabled: boolean }> {
 		const responseData = await parseJSONResponse(response);
 		const config = readRecordField(responseData, 'data');
 		if (response.status === 200 && config && typeof config.pamEnabled === 'boolean') {
-			return { pamEnabled: config.pamEnabled };
+			return {
+				pamEnabled: config.pamEnabled,
+				oidcEnabled: config.oidcEnabled === true,
+				oidcProviderName:
+					typeof config.oidcProviderName === 'string' && config.oidcProviderName.trim()
+						? config.oidcProviderName.trim()
+						: 'OIDC'
+			};
 		}
 	} catch (error) {
 		console.warn('Failed to load login config', error);
 	}
 
-	return { pamEnabled: true };
+	return { pamEnabled: true, oidcEnabled: false, oidcProviderName: 'OIDC' };
+}
+
+export async function beginOIDCLogin(remember: boolean): Promise<boolean> {
+	try {
+		const response = await fetch('/api/auth/oidc/login/begin', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ remember })
+		});
+		const responseData = await parseJSONResponse(response);
+		const authUrl = readStringField(readRecordField(responseData, 'data'), 'authUrl');
+		if (response.status === 200 && authUrl) {
+			const parsed = new URL(authUrl);
+			if (parsed.protocol === 'https:') {
+				window.location.assign(parsed.toString());
+				return true;
+			}
+		}
+		showLoginFailure(
+			(responseData || {}) as APIResponse,
+			'/api/auth/oidc/login/begin',
+			response.status,
+			'OIDC login could not be started'
+		);
+	} catch (error) {
+		console.error('OIDC login start failed:', error);
+		toast.error('OIDC login could not be started', { position: 'bottom-center' });
+	}
+	return false;
+}
+
+export async function finishOIDCLogin(code: string, state: string): Promise<boolean> {
+	try {
+		const response = await fetch('/api/auth/oidc/login/finish', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ code, state })
+		});
+		const responseData = await parseJSONResponse(response);
+		if (response.status === 200 && responseData && applySuccessfulLogin(responseData.data)) {
+			await clearCachedAPIData();
+			return true;
+		}
+		showLoginFailure(
+			(responseData || {}) as APIResponse,
+			'/api/auth/oidc/login/finish',
+			response.status,
+			'OIDC authentication failed'
+		);
+	} catch (error) {
+		console.error('OIDC callback failed:', error);
+		toast.error('OIDC authentication failed', { position: 'bottom-center' });
+	}
+	return false;
 }
 
 type LoginOptionsJSON = Parameters<typeof buildLoginOptions>[0];

@@ -2155,7 +2155,7 @@ export function handleDemoStorageRequest<T = unknown>(
 	if (path === '/auth/users' && method === 'GET') {
 		const source = parsed.searchParams.get('source');
 		return success(
-			source === 'local' || source === 'pam'
+			source === 'local' || source === 'pam' || source === 'oidc'
 				? state.users.filter((user) => user.source === source)
 				: state.users
 		) as DemoStorageResponse<T>;

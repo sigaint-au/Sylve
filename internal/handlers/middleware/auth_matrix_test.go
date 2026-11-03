@@ -18,6 +18,7 @@ import (
 
 	"github.com/alchemillahq/sylve/internal/db/models"
 	clusterModels "github.com/alchemillahq/sylve/internal/db/models/cluster"
+	serviceInterfaces "github.com/alchemillahq/sylve/internal/interfaces/services"
 	authSvc "github.com/alchemillahq/sylve/internal/services/auth"
 	"github.com/alchemillahq/sylve/internal/testutil"
 	"github.com/alchemillahq/sylve/pkg/utils"
@@ -185,6 +186,12 @@ var (
 	sylveNonAdmin = authProfile{
 		AuthType: "sylve", UserID: 2, AuthScope: "local",
 	}
+	oidcAdmin = authProfile{
+		AuthType: authSvc.AuthTypeOIDC, UserID: 1, AuthScope: "local",
+	}
+	oidcNonAdmin = authProfile{
+		AuthType: authSvc.AuthTypeOIDC, UserID: 2, AuthScope: "local",
+	}
 	clusterInternal = authProfile{
 		AuthType:        authSvc.ClusterInternalAuthType,
 		UserID:          0,
@@ -255,6 +262,8 @@ func TestAuthorizationMatrix(t *testing.T) {
 		{"admin: unauthenticated → 401", anonUser, []gin.HandlerFunc{adminMW}, http.StatusUnauthorized},
 		{"admin: non-admin → 403", sylveNonAdmin, []gin.HandlerFunc{adminMW}, http.StatusForbidden},
 		{"admin: admin → 200", sylveAdmin, []gin.HandlerFunc{adminMW}, http.StatusOK},
+		{"OIDC: admin → 200", oidcAdmin, []gin.HandlerFunc{adminMW}, http.StatusOK},
+		{"OIDC: non-admin → 403", oidcNonAdmin, []gin.HandlerFunc{adminMW}, http.StatusForbidden},
 
 		{"intra-cluster: unauthenticated → 401", anonUser, []gin.HandlerFunc{clusterScopeMW}, http.StatusUnauthorized},
 		{"intra-cluster: user → 403", sylveNonAdmin, []gin.HandlerFunc{clusterScopeMW}, http.StatusForbidden},
@@ -276,5 +285,19 @@ func TestAuthorizationMatrix(t *testing.T) {
 				t.Fatalf("expected %d, got %d", tc.want, rec.Code)
 			}
 		})
+	}
+}
+
+func TestClusterRequestAllowsOIDCUserProxy(t *testing.T) {
+	claims := serviceInterfaces.CustomClaims{
+		AuthType: authSvc.AuthTypeOIDC, UserID: 7, Admin: true,
+		TokenUse: authSvc.ClusterTokenUseUserProxy,
+	}
+	if !clusterRequestAllowed(claims, http.MethodGet, "/api/info/node") {
+		t.Fatal("OIDC admin proxy token should be accepted for cluster requests")
+	}
+	claims.Admin = false
+	if clusterRequestAllowed(claims, http.MethodGet, "/api/info/node") {
+		t.Fatal("OIDC non-admin proxy token must be rejected")
 	}
 }

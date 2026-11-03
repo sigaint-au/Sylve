@@ -37,7 +37,7 @@ export const UserSchema = z.object({
 	locked: z.boolean().optional().default(false),
 	doasEnabled: z.boolean().optional().default(false),
 	primaryGroupId: z.number().nullable().optional(),
-	source: z.enum(['local', 'pam']).default('local'),
+	source: z.enum(['local', 'pam', 'oidc']).default('local'),
 	externallyManaged: z.boolean().default(false),
 	passkeyEligible: z.boolean(),
 	createdAt: z.string(),

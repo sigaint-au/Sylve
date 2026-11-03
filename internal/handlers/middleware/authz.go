@@ -51,7 +51,7 @@ func RequireLocalAdminForWrites(service *authService.Service) gin.HandlerFunc {
 
 func localAdminAllowed(c *gin.Context, service *authService.Service) bool {
 	authType := strings.TrimSpace(c.GetString("AuthType"))
-	if authType != "sylve" && authType != authService.AuthTypeSylvePasskey && authType != "pam" {
+	if authType != "sylve" && authType != authService.AuthTypeSylvePasskey && authType != "pam" && authType != authService.AuthTypeOIDC {
 		abortAdminRequired(c)
 		return false
 	}

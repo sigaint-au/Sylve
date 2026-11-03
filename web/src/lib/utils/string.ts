@@ -225,6 +225,12 @@ export function isValidUsername(username: string): boolean {
 	return regex.test(username);
 }
 
+export function isValidOIDCUsername(username: string): boolean {
+	if (!username || username.length > 128) return false;
+	if (['root', 'admin', 'superuser', 'nobody'].includes(username.toLowerCase())) return false;
+	return /^[A-Za-z0-9_][A-Za-z0-9._@-]{0,127}$/.test(username);
+}
+
 export function isValidEmail(email: string): boolean {
 	return isEmail(email, {
 		require_tld: true,

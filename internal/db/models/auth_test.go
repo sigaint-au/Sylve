@@ -26,6 +26,9 @@ func TestPAMOwnershipMigrationPreservesManagedAccounts(t *testing.T) {
 	if err := db.AutoMigrate(&models.User{}, &models.Group{}); err != nil {
 		t.Fatal(err)
 	}
+	if !db.Migrator().HasColumn(&models.User{}, "OIDCSubject") {
+		t.Fatal("AutoMigrate did not add the OIDC subject to existing users")
+	}
 	var user models.User
 	var group models.Group
 	if err := db.First(&user, 1).Error; err != nil {

@@ -33,8 +33,26 @@ type BTT struct {
 }
 
 type AuthConfig struct {
-	EnablePAM  bool   `json:"enablePAM"`
-	PAMService string `json:"pamService"`
+	EnablePAM  bool       `json:"enablePAM"`
+	PAMService string     `json:"pamService"`
+	OIDC       OIDCConfig `json:"oidc"`
+}
+
+type OIDCConfig struct {
+	Enabled       bool     `json:"enabled"`
+	ProviderName  string   `json:"providerName"`
+	IssuerURL     string   `json:"issuerURL"`
+	ClientID      string   `json:"clientID"`
+	ClientSecret  string   `json:"clientSecret"`
+	RedirectURL   string   `json:"redirectURL"`
+	Scopes        []string `json:"scopes"`
+	UsernameClaim string   `json:"usernameClaim"`
+	AutoProvision bool     `json:"autoProvision"`
+	// An empty AdminGroup makes auto-provisioned accounts admins.
+	AdminGroup         string `json:"adminGroup"`
+	GroupsClaim        string `json:"groupsClaim"`
+	CAFile             string `json:"caFile"`
+	InsecureSkipVerify bool   `json:"insecureSkipVerify"`
 }
 
 type Environment string

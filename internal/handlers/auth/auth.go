@@ -41,7 +41,9 @@ type SuccessfulLogin struct {
 }
 
 type LoginConfig struct {
-	PAMEnabled bool `json:"pamEnabled"`
+	PAMEnabled       bool   `json:"pamEnabled"`
+	OIDCEnabled      bool   `json:"oidcEnabled"`
+	OIDCProviderName string `json:"oidcProviderName"`
 }
 
 type UserPreferences struct {
@@ -170,7 +172,9 @@ func LoginConfigHandler() gin.HandlerFunc {
 			Message: "login_config_retrieved",
 			Error:   "",
 			Data: LoginConfig{
-				PAMEnabled: config.IsPAMEnabled(),
+				PAMEnabled:       config.IsPAMEnabled(),
+				OIDCEnabled:      config.IsOIDCEnabled(),
+				OIDCProviderName: config.GetOIDCConfig().ProviderName,
 			},
 		})
 	}

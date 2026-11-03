@@ -26,6 +26,7 @@ import (
 )
 
 type CreateUserRequest struct {
+	Source              string `json:"source" binding:"omitempty,oneof=local oidc"`
 	Username            string `json:"username" binding:"required,min=1,max=128"`
 	FullName            string `json:"fullName"`
 	Password            string `json:"password" maxLength:"72"`
@@ -183,7 +184,7 @@ func writeUserServiceError(c *gin.Context, failureMessage string, err error) {
 // @Tags Users
 // @Produce json
 // @Security BearerAuth
-// @Param source query string false "Account source" Enums(local,pam)
+// @Param source query string false "Account source" Enums(local,pam,oidc)
 // @Success 200 {object} internal.APIResponse[[]PublicUser] "Success"
 // @Failure 400 {object} internal.APIResponse[any] "Bad Request"
 // @Failure 401 {object} internal.APIResponse[any] "Unauthorized"
@@ -193,7 +194,7 @@ func writeUserServiceError(c *gin.Context, failureMessage string, err error) {
 func ListUsersHandler(authService *auth.Service) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		source := strings.TrimSpace(c.Query("source"))
-		if source != "" && source != "local" && source != "pam" {
+		if source != "" && source != "local" && source != "pam" && source != "oidc" {
 			writeAuthCodeError(c, http.StatusBadRequest, "invalid_user_source")
 			return
 		}
@@ -213,13 +214,13 @@ func ListUsersHandler(authService *auth.Service) gin.HandlerFunc {
 	}
 }
 
-// @Summary Create local user
-// @Description Create a new local Sylve user; passwords are limited to 72 UTF-8 bytes
+// @Summary Create user
+// @Description Create a local Sylve user or a passwordless OIDC user
 // @Tags Users
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param request body CreateUserRequest true "Local user"
+// @Param request body CreateUserRequest true "Local or OIDC user"
 // @Success 201 {object} internal.APIResponse[UserMutationResult] "User Created"
 // @Failure 400 {object} internal.APIResponse[any] "Bad Request"
 // @Failure 401 {object} internal.APIResponse[any] "Unauthorized"
@@ -242,6 +243,7 @@ func CreateUserHandler(authService *auth.Service) gin.HandlerFunc {
 		}
 
 		var model models.User
+		model.Source = req.Source
 		model.Username = req.Username
 		model.FullName = req.FullName
 		model.Password = req.Password

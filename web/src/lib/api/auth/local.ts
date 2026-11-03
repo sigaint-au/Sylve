@@ -29,6 +29,7 @@ export async function listUsers(
 
 export interface UserPayload {
 	username: string;
+	source?: 'local' | 'oidc';
 	fullName?: string;
 	email?: string;
 	password?: string;

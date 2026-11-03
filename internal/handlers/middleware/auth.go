@@ -126,7 +126,7 @@ func clusterRequestAllowed(claims serviceInterfaces.CustomClaims, method, path s
 			return false
 		}
 		return claims.AuthType == "sylve" || claims.AuthType == "pam" ||
-			claims.AuthType == authSvc.AuthTypeSylvePasskey
+			claims.AuthType == authSvc.AuthTypeSylvePasskey || claims.AuthType == authSvc.AuthTypeOIDC
 	case authSvc.ClusterTokenUseInternalControl:
 		return claims.UserID == 0 && !claims.Admin && claims.AuthType == authSvc.ClusterInternalAuthType &&
 			strings.HasPrefix(path, "/api/intra-cluster/") && path != "/api/intra-cluster/"

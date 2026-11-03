@@ -103,6 +103,61 @@ func GetPAMService() string {
 	return "login"
 }
 
+func IsOIDCEnabled() bool {
+	if ParsedConfig == nil {
+		return false
+	}
+	oidc := ParsedConfig.Auth.OIDC
+	return oidc.Enabled && strings.TrimSpace(oidc.IssuerURL) != "" && strings.TrimSpace(oidc.ClientID) != ""
+}
+
+func GetOIDCConfig() internal.OIDCConfig {
+	var oidc internal.OIDCConfig
+	if ParsedConfig != nil {
+		oidc = ParsedConfig.Auth.OIDC
+	}
+	oidc.IssuerURL = strings.TrimSpace(oidc.IssuerURL)
+	oidc.ClientID = strings.TrimSpace(oidc.ClientID)
+	oidc.RedirectURL = strings.TrimSpace(oidc.RedirectURL)
+	oidc.CAFile = strings.TrimSpace(oidc.CAFile)
+	oidc.AdminGroup = strings.TrimSpace(oidc.AdminGroup)
+	if strings.TrimSpace(oidc.ProviderName) == "" {
+		oidc.ProviderName = "OIDC"
+	} else {
+		oidc.ProviderName = strings.TrimSpace(oidc.ProviderName)
+	}
+	if len(oidc.Scopes) == 0 {
+		oidc.Scopes = []string{"openid", "profile", "email"}
+	} else {
+		scopes := make([]string, 0, len(oidc.Scopes)+1)
+		seen := map[string]struct{}{"openid": {}}
+		scopes = append(scopes, "openid")
+		for _, scope := range oidc.Scopes {
+			scope = strings.TrimSpace(scope)
+			if scope == "" {
+				continue
+			}
+			if _, exists := seen[scope]; exists {
+				continue
+			}
+			seen[scope] = struct{}{}
+			scopes = append(scopes, scope)
+		}
+		oidc.Scopes = scopes
+	}
+	if strings.TrimSpace(oidc.UsernameClaim) == "" {
+		oidc.UsernameClaim = "preferred_username"
+	} else {
+		oidc.UsernameClaim = strings.TrimSpace(oidc.UsernameClaim)
+	}
+	if strings.TrimSpace(oidc.GroupsClaim) == "" {
+		oidc.GroupsClaim = "groups"
+	} else {
+		oidc.GroupsClaim = strings.TrimSpace(oidc.GroupsClaim)
+	}
+	return oidc
+}
+
 func IsRunningInJail() bool {
 	val, err := sysctl.GetInt64("security.jail.jailed")
 	if err != nil {

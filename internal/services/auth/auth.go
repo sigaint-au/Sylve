@@ -89,6 +89,7 @@ const (
 	ClusterTokenUseInternalControl = "internal_control"
 	ClusterInternalAuthType        = "internal-cluster"
 	AuthTypeSylvePasskey           = "sylve-passkey"
+	AuthTypeOIDC                   = "oidc"
 	ClusterKeyHeader               = "X-Cluster-Key"
 	ClusterTokenHeader             = "X-Cluster-Token"
 	ClusterTokenTTL                = 5 * time.Minute
@@ -318,6 +319,18 @@ func (s *Service) CreateJWT(username, password, authType string, remember bool) 
 			s.logLoginFailure(username, authType, "pam_disabled", loginAttempt{}, nil)
 			return 0, "", fmt.Errorf("pam_auth_disabled")
 		}
+		var registered models.User
+		lookupErr := s.DB.Select("source").Where("username = ?", username).First(&registered).Error
+		if lookupErr == nil && registered.Source == AuthTypeOIDC {
+			attempt := s.recordFailedLogin(username)
+			s.logLoginFailure(username, authType, "user_source_mismatch", attempt, nil)
+			return 0, "", fmt.Errorf("user_not_registered_in_sylve")
+		}
+		if lookupErr != nil && !errors.Is(lookupErr, gorm.ErrRecordNotFound) {
+			attempt := s.recordFailedLogin(username)
+			s.logLoginFailure(username, authType, "database_lookup_failed", attempt, lookupErr)
+			return 0, "", fmt.Errorf("pam_auth_error")
+		}
 
 		valid, err := s.AuthenticatePAM(username, password)
 
@@ -494,7 +507,7 @@ func (s *Service) CreateUserProxyJWT(userId uint, username string, authType stri
 	admin := false
 	if userId != 0 {
 		var user models.User
-		if err := s.DB.Select("username", "admin", "locked", "disable_password").First(&user, userId).Error; err != nil {
+		if err := s.DB.Select("username", "admin", "locked", "disable_password", "source").First(&user, userId).Error; err != nil {
 			return "", fmt.Errorf("failed_to_load_proxy_user: %w", err)
 		}
 		if user.Locked || !user.Admin {
@@ -510,6 +523,10 @@ func (s *Service) CreateUserProxyJWT(userId uint, username string, authType stri
 				return "", fmt.Errorf("proxy_user_not_authorized")
 			}
 		case AuthTypeSylvePasskey:
+		case AuthTypeOIDC:
+			if !config.IsOIDCEnabled() || user.Source != AuthTypeOIDC {
+				return "", fmt.Errorf("proxy_user_not_authorized")
+			}
 		default:
 			return "", fmt.Errorf("proxy_auth_type_not_supported")
 		}
@@ -624,6 +641,9 @@ func (s *Service) VerifyClusterJWT(tokenString string) (serviceInterfaces.Custom
 	default:
 		return serviceInterfaces.CustomClaims{}, fmt.Errorf("invalid_cluster_token_use")
 	}
+	if claims.CustomClaims.AuthType == AuthTypeOIDC && !config.IsOIDCEnabled() {
+		return serviceInterfaces.CustomClaims{}, fmt.Errorf("oidc_auth_disabled")
+	}
 
 	return claims.CustomClaims, nil
 }
@@ -655,6 +675,9 @@ func (s *Service) VerifyTokenInDb(token string) bool {
 			return false
 		}
 	}
+	if tokenRecord.AuthType == AuthTypeOIDC && !config.IsOIDCEnabled() {
+		return false
+	}
 
 	var user models.User
 	if err := s.DB.Where("id = ?", tokenRecord.UserID).First(&user).Error; err != nil {
@@ -665,6 +688,9 @@ func (s *Service) VerifyTokenInDb(token string) bool {
 	}
 
 	if user.Locked {
+		return false
+	}
+	if tokenRecord.AuthType == AuthTypeOIDC && user.Source != AuthTypeOIDC {
 		return false
 	}
 	if !user.Admin {

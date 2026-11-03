@@ -420,6 +420,24 @@ func TestCreateUserHandlerSuccess(t *testing.T) {
 	}
 }
 
+func TestCreateOIDCUserHandlerAcceptsEnterpriseUsernameWithoutPassword(t *testing.T) {
+	svc := newTestAuthService(t)
+	router := setupRouter(svc)
+	w := performJSON(t, router, http.MethodPost, "/auth/users", map[string]any{
+		"source": "oidc", "username": "john.doe@corp.com", "email": "john.doe@example.com", "admin": true,
+	})
+	if w.Code != http.StatusCreated {
+		t.Fatalf("expected OIDC account creation to succeed, got %d: %s", w.Code, w.Body.String())
+	}
+	var user models.User
+	if err := svc.DB.Where("username = ?", "john.doe@corp.com").First(&user).Error; err != nil {
+		t.Fatalf("load OIDC account: %v", err)
+	}
+	if user.Source != "oidc" || user.Password != "" || !user.ExternallyManaged || user.UID != 0 {
+		t.Fatalf("unexpected OIDC account: %+v", user)
+	}
+}
+
 func TestCreateUserHandlerDuplicateWithPAM(t *testing.T) {
 	svc := newTestAuthService(t)
 	svc.DB.Create(&models.User{Username: "pamuser", Password: "hashed", Source: "pam"})
@@ -465,6 +483,7 @@ func TestListUsersHandlerFilterBySource(t *testing.T) {
 	svc.DB.Create(&models.User{Username: "local1", Password: "hashed", Source: "local"})
 	svc.DB.Create(&models.User{Username: "local2", Password: "hashed", Source: "local"})
 	svc.DB.Create(&models.User{Username: "pam1", Password: "hashed", Source: "pam"})
+	svc.DB.Create(&models.User{Username: "oidc1@example.com", Source: "oidc", ExternallyManaged: true})
 	router := setupRouter(svc)
 
 	w := performJSON(t, router, "GET", "/auth/users?source=local", nil)
@@ -489,6 +508,15 @@ func TestListUsersHandlerFilterBySource(t *testing.T) {
 	}
 	if len(resp2.Data) != 1 {
 		t.Fatalf("expected 1 PAM user, got: %d", len(resp2.Data))
+	}
+
+	w = performJSON(t, router, "GET", "/auth/users?source=oidc", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for OIDC users, got %d", w.Code)
+	}
+	var resp3 internal.APIResponse[[]PublicUser]
+	if err := json.Unmarshal(w.Body.Bytes(), &resp3); err != nil || len(resp3.Data) != 1 || resp3.Data[0].Source != "oidc" {
+		t.Fatalf("unexpected OIDC users response: %+v err=%v", resp3, err)
 	}
 }
 

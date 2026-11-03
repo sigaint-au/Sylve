@@ -11,6 +11,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/alchemillahq/sylve/internal/db/models"
@@ -59,7 +60,7 @@ func (s *Service) ListUsers() ([]models.User, error) {
 }
 
 func (s *Service) ListUsersBySource(source string) ([]models.User, error) {
-	if source != "" && source != "local" && source != "pam" {
+	if source != "" && source != "local" && source != "pam" && source != "oidc" {
 		return nil, fmt.Errorf("invalid_user_source")
 	}
 
@@ -83,6 +84,13 @@ func (s *Service) GetUserByID(id uint) (*models.User, error) {
 }
 
 func (s *Service) CreateUser(user *models.User, opts CreateUserOpts) error {
+	if user.Source == "oidc" {
+		return s.createOIDCUser(user)
+	}
+	if user.Source != "" && user.Source != "local" {
+		return userValidationError("invalid_user_source")
+	}
+
 	if user.Email != "" && !utils.IsValidEmail(user.Email) {
 		return fmt.Errorf("invalid_email_format: %s", user.Email)
 	}
@@ -122,16 +130,61 @@ func (s *Service) CreateUser(user *models.User, opts CreateUserOpts) error {
 		return err
 	}
 	if existing != nil {
-		if existing.Source == "pam" {
-			return fmt.Errorf("a_pam_user_with_this_username_already_exists: %s", user.Username)
+		if existing.Source != "local" {
+			return userConflictError("user_source_conflict")
 		}
-		return fmt.Errorf("username_already_exists: %s", user.Username)
+		return userConflictError("username_already_exists")
 	}
 
 	if err := s.DB.Create(user).Error; err != nil {
 		return fmt.Errorf("failed_to_create_user: %w", err)
 	}
 
+	return nil
+}
+
+func (s *Service) createOIDCUser(user *models.User) error {
+	if !utils.IsValidOIDCUsername(user.Username) {
+		return userValidationError("invalid_username_format")
+	}
+	if user.Email != "" && !utils.IsValidEmail(user.Email) {
+		return userValidationError("invalid_email_format")
+	}
+
+	existing, err := s.findUsernameConflict(user.Username, 0)
+	if err != nil {
+		return userInternalError("username_check_failed", err)
+	}
+	if existing != nil {
+		if existing.Source != "oidc" {
+			return userConflictError("user_source_conflict")
+		}
+		return userConflictError("username_already_exists")
+	}
+
+	user.Password = ""
+	user.Source = "oidc"
+	user.ExternallyManaged = true
+	user.UID = 0
+	user.Shell = "/usr/sbin/nologin"
+	user.HomeDirectory = "/nonexistent"
+	user.HomeDirPerms = 0o755
+	user.SSHPublicKey = ""
+	user.DisablePassword = true
+	user.DoasEnabled = false
+	user.PrimaryGroupID = nil
+	user.OIDCSubject = ""
+
+	if err := s.DB.Create(user).Error; err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(strings.ToLower(err.Error()), "unique constraint") {
+			existing, lookupErr := s.findUsernameConflict(user.Username, 0)
+			if lookupErr == nil && existing != nil && existing.Source != "oidc" {
+				return userConflictError("user_source_conflict")
+			}
+			return userConflictError("username_already_exists")
+		}
+		return userInternalError("user_create_failed", err)
+	}
 	return nil
 }
 
@@ -183,6 +236,9 @@ func (s *Service) DeleteUser(userID uint, removeHome bool) error {
 	case "root":
 		return userConflictError("cannot_delete_root_user")
 	}
+	if user.Source == "oidc" && removeHome {
+		return userConflictError("external_user_read_only")
+	}
 
 	if user.Source == "pam" && !user.ExternallyManaged {
 		if err := s.deleteManagedPamUser(user, removeHome); err != nil {
@@ -228,6 +284,9 @@ func (s *Service) EditUser(userID uint, opts EditUserOpts) error {
 			return s.editExternalPamUser(user, opts)
 		}
 		return s.editManagedPamUser(user, opts)
+	}
+	if user.Source == "oidc" {
+		return s.editOIDCUser(user, opts)
 	}
 
 	if opts.Username != user.Username {
@@ -298,6 +357,38 @@ func (s *Service) EditUser(userID uint, opts EditUserOpts) error {
 			delete(s.loginAttempts, opts.Username)
 		}
 		s.loginMu.Unlock()
+	}
+	return nil
+}
+
+func (s *Service) editOIDCUser(user *models.User, opts EditUserOpts) error {
+	if opts.Username != user.Username || opts.Password != "" {
+		return userConflictError("external_user_read_only")
+	}
+	if opts.Email != "" && !utils.IsValidEmail(opts.Email) {
+		return userValidationError("invalid_email_format")
+	}
+
+	updates := map[string]any{
+		"full_name": opts.FullName,
+		"email":     opts.Email,
+		"admin":     opts.Admin,
+		"locked":    opts.Locked,
+	}
+	if opts.ConfirmGuestActions != nil {
+		updates["confirm_guest_actions"] = *opts.ConfirmGuestActions
+	}
+	revokeSessions := opts.Admin != user.Admin || opts.Locked != user.Locked
+	if err := s.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(user).Updates(updates).Error; err != nil {
+			return err
+		}
+		if revokeSessions {
+			return s.revokeUserTokens(tx, user.ID)
+		}
+		return nil
+	}); err != nil {
+		return userInternalError("oidc_user_update_failed", err)
 	}
 	return nil
 }

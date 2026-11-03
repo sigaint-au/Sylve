@@ -5,7 +5,13 @@
 	import { IsDocumentVisible, IsIdle, watch } from 'runed';
 	import { fade } from 'svelte/transition';
 	import { preloadData, onNavigate } from '$app/navigation';
-	import { isTokenValid, login, loginWithPasskey, isInitialized } from '$lib/api/auth';
+	import {
+		finishOIDCLogin,
+		isTokenValid,
+		login,
+		loginWithPasskey,
+		isInitialized
+	} from '$lib/api/auth';
 	import Login from '$lib/components/custom/Login.svelte';
 	import Throbber from '$lib/components/custom/Throbber.svelte';
 	import Shell from '$lib/components/skeleton/Shell.svelte';
@@ -39,6 +45,7 @@
 	import { isAPIResponse } from '$lib/utils/http.js';
 	import ErrorDetailModal from '$lib/components/custom/Dialog/ErrorDetailModal.svelte';
 	import { initializeDemoRuntime, isDemoMode } from '$lib/demo/runtime';
+	import { toast } from 'svelte-sonner';
 
 	let { children } = $props();
 	initializeDemoRuntime();
@@ -67,6 +74,46 @@
 		setMode(event.data.theme);
 	}
 
+	async function completePostLogin(toLoginPath: string = '') {
+		loading.login = false;
+		loading.passkey = false;
+		loading.throbber = true;
+		loading.initialization = true;
+		try {
+			try {
+				[initialized, rebooted] = await isInitialized();
+			} catch (error) {
+				console.error('Initialization check error:', error);
+				initialized = false;
+				rebooted = false;
+			}
+
+			await useSafeGoto(resolve('/'));
+			if (!initialized || !rebooted) return;
+
+			const basicSettings = await getLocalBasicSettings();
+			if (isAPIResponse(basicSettings)) {
+				console.error('Failed to fetch basic settings:', basicSettings);
+				return;
+			}
+
+			setEnabledServicesForHostname(
+				storage.localHostname || storage.hostname,
+				basicSettings.services
+			);
+			syncActiveEnabledServices(page.url.pathname);
+
+			let target = toLoginPath || page.url.pathname;
+			if (target === '/') target = resolve('/datacenter/summary');
+			await preloadData(target);
+			await useSafeGoto(target, { replaceState: true });
+		} finally {
+			loading.initialization = false;
+			await sleep(1500);
+			loading.throbber = false;
+		}
+	}
+
 	onMount(async () => {
 		loadLocale((storage.language || 'en') as Locales);
 		addTabulatorFilters();
@@ -89,6 +136,36 @@
 					window.parent.postMessage({ type: 'sylve-demo-ready' }, '*');
 				});
 			});
+			return;
+		}
+
+		const oidcCode = page.url.searchParams.get('code');
+		const oidcState = page.url.searchParams.get('state');
+		const oidcError = page.url.searchParams.get('error');
+		if (oidcCode || oidcState || oidcError) {
+			const returnPath = page.url.pathname;
+			loading.throbber = true;
+			window.history.replaceState({}, '', returnPath);
+			if (oidcError) {
+				toast.error(
+					oidcError === 'access_denied' ? 'OIDC sign-in was canceled' : 'OIDC sign-in failed',
+					{
+						position: 'bottom-center'
+					}
+				);
+				loading.throbber = false;
+			} else if (!oidcCode || !oidcState) {
+				toast.error('OIDC callback is incomplete', { position: 'bottom-center' });
+				loading.throbber = false;
+			} else {
+				loading.login = true;
+				if (await finishOIDCLogin(oidcCode, oidcState)) {
+					await completePostLogin(returnPath);
+				} else {
+					loading.login = false;
+					loading.throbber = false;
+				}
+			}
 			return;
 		}
 
@@ -168,54 +245,7 @@
 
 		try {
 			if (await login(username, password, type, remember)) {
-				loading.login = false;
-				loading.throbber = true;
-				loading.initialization = true;
-
-				try {
-					try {
-						[initialized, rebooted] = await isInitialized();
-					} catch (error) {
-						console.error('Initialization check error:', error);
-						initialized = false;
-						rebooted = false;
-					}
-
-					await useSafeGoto(resolve('/'));
-
-					if (!initialized || !rebooted) {
-						return;
-					}
-
-					const basicSettings = await getLocalBasicSettings();
-					if (isAPIResponse(basicSettings)) {
-						console.error('Failed to fetch basic settings:', basicSettings);
-						return;
-					}
-
-					setEnabledServicesForHostname(
-						storage.localHostname || storage.hostname,
-						basicSettings.services
-					);
-					syncActiveEnabledServices(page.url.pathname);
-
-					let target = toLoginPath;
-
-					if (!target) {
-						target = page.url.pathname;
-					}
-
-					if (target === '/') {
-						target = resolve('/datacenter/summary');
-					}
-
-					await preloadData(target);
-					await useSafeGoto(target, { replaceState: true });
-				} finally {
-					loading.initialization = false;
-					await sleep(1500);
-					loading.throbber = false;
-				}
+				await completePostLogin(toLoginPath);
 				return;
 			} else {
 				isError = true;
@@ -242,52 +272,7 @@
 
 		try {
 			if (await loginWithPasskey(remember)) {
-				loading.passkey = false;
-				loading.throbber = true;
-				loading.initialization = true;
-
-				try {
-					try {
-						[initialized, rebooted] = await isInitialized();
-					} catch (error) {
-						console.error('Initialization check error:', error);
-						initialized = false;
-						rebooted = false;
-					}
-
-					await useSafeGoto(resolve('/'));
-
-					if (!initialized || !rebooted) {
-						return;
-					}
-
-					const basicSettings = await getLocalBasicSettings();
-					if (isAPIResponse(basicSettings)) {
-						console.error('Failed to fetch basic settings:', basicSettings);
-						return;
-					}
-
-					setEnabledServicesForHostname(
-						storage.localHostname || storage.hostname,
-						basicSettings.services
-					);
-					syncActiveEnabledServices(page.url.pathname);
-
-					let target = toLoginPath;
-					if (!target) {
-						target = page.url.pathname;
-					}
-					if (target === '/') {
-						target = resolve('/datacenter/summary');
-					}
-
-					await preloadData(target);
-					await useSafeGoto(target, { replaceState: true });
-				} finally {
-					loading.initialization = false;
-					await sleep(1500);
-					loading.throbber = false;
-				}
+				await completePostLogin(toLoginPath);
 				return;
 			} else {
 				isError = true;

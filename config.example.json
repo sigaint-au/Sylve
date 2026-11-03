@@ -9,7 +9,22 @@
     "dataPath": "/var/db/sylve",
     "auth": {
         "enablePAM": false,
-        "pamService": "login"
+        "pamService": "login",
+        "oidc": {
+            "enabled": false,
+            "providerName": "OIDC",
+            "issuerURL": "",
+            "clientID": "",
+            "clientSecret": "",
+            "redirectURL": "",
+            "scopes": ["openid", "profile", "email"],
+            "usernameClaim": "preferred_username",
+            "autoProvision": false,
+            "adminGroup": "",
+            "groupsClaim": "groups",
+            "caFile": "",
+            "insecureSkipVerify": false
+        }
     },
     "admin": {
         "email": "admin@sylve.local",

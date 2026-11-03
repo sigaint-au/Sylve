@@ -134,6 +134,43 @@ func TestLoginConfigHandlerReturnsPAMDisabledByDefault(t *testing.T) {
 	}
 }
 
+func TestLoginConfigHandlerReturnsOIDCConfiguration(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	previous := config.ParsedConfig
+	config.ParsedConfig = &internal.SylveConfig{Auth: internal.AuthConfig{OIDC: internal.OIDCConfig{
+		Enabled: true, ProviderName: "Corp SSO", IssuerURL: "https://id.example", ClientID: "sylve",
+	}}}
+	t.Cleanup(func() { config.ParsedConfig = previous })
+
+	payload := runLoginConfigHandler(t)
+	data, ok := payload["data"].(map[string]any)
+	if !ok || data["oidcEnabled"] != true || data["oidcProviderName"] != "Corp SSO" {
+		t.Fatalf("unexpected OIDC login configuration: %#v", payload)
+	}
+}
+
+func TestWriteOIDCLoginErrorStatuses(t *testing.T) {
+	for _, test := range []struct {
+		code string
+		want int
+	}{
+		{code: "invalid_credentials", want: http.StatusUnauthorized},
+		{code: "user_source_conflict", want: http.StatusConflict},
+		{code: "only_admin_allowed", want: http.StatusForbidden},
+		{code: "oidc_provider_unavailable", want: http.StatusServiceUnavailable},
+		{code: "challenge_used", want: http.StatusBadRequest},
+	} {
+		t.Run(test.code, func(t *testing.T) {
+			recorder := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(recorder)
+			writeOIDCLoginError(ctx, errors.New(test.code))
+			if recorder.Code != test.want {
+				t.Fatalf("status = %d, want %d", recorder.Code, test.want)
+			}
+		})
+	}
+}
+
 func TestWriteLoginHostnameError(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 

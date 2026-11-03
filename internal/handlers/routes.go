@@ -146,6 +146,8 @@ func RegisterRoutes(r *gin.Engine,
 		publicAuth.POST("/login", authHandlers.LoginHandler(authService))
 		publicAuth.POST("/passkeys/login/begin", authHandlers.BeginPasskeyLoginHandler(authService))
 		publicAuth.POST("/passkeys/login/finish", authHandlers.FinishPasskeyLoginHandler(authService))
+		publicAuth.POST("/oidc/login/begin", authHandlers.BeginOIDCLoginHandler(authService))
+		publicAuth.POST("/oidc/login/finish", authHandlers.FinishOIDCLoginHandler(authService))
 	}
 
 	health := api.Group("/health")

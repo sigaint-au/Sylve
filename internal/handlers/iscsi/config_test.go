@@ -276,7 +276,8 @@ func TestISCSIConfigRoutesRequireLocalAdminForReadsAndWrites(t *testing.T) {
 		{authType: "pam", id: admin.ID, status: 200},
 		{authType: authService.AuthTypeSylvePasskey, id: admin.ID, status: 200},
 		{authType: "sylve", id: reader.ID, status: 403},
-		{authType: "oidc", id: admin.ID, status: 403},
+		{authType: authService.AuthTypeOIDC, id: admin.ID, status: 200},
+		{authType: "invalid", id: admin.ID, status: 403},
 		{authType: "cluster-key", id: admin.ID, status: 403},
 	} {
 		router := gin.New()

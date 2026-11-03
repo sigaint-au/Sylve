@@ -238,7 +238,8 @@ func TestNFSWritesRequireLocalAdmin(t *testing.T) {
 		{"pam", admin.ID, http.StatusOK},
 		{authService.AuthTypeSylvePasskey, admin.ID, http.StatusOK},
 		{"sylve", reader.ID, http.StatusForbidden},
-		{"oidc", admin.ID, http.StatusForbidden},
+		{authService.AuthTypeOIDC, admin.ID, http.StatusOK},
+		{"invalid", admin.ID, http.StatusForbidden},
 		{"cluster-key", admin.ID, http.StatusForbidden},
 	} {
 		router := gin.New()

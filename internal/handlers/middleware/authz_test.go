@@ -61,7 +61,9 @@ func TestRequireLocalAdmin(t *testing.T) {
 		{"sylve admin", "admin", true, "sylve", http.StatusOK},
 		{"passkey admin", "admin", true, authSvc.AuthTypeSylvePasskey, http.StatusOK},
 		{"pam admin", "root", true, "pam", http.StatusOK},
+		{"oidc admin", "oidc-admin", true, authSvc.AuthTypeOIDC, http.StatusOK},
 		{"pam non-admin", "pamuser", false, "pam", http.StatusForbidden},
+		{"oidc non-admin", "oidc-user", false, authSvc.AuthTypeOIDC, http.StatusForbidden},
 		{"sylve non-admin", "user", false, "sylve", http.StatusForbidden},
 	}
 

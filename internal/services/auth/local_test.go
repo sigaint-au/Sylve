@@ -787,8 +787,41 @@ func TestCreateUserDuplicateWhenPAMExists(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected error when PAM user with same name exists")
 	}
-	if !strings.Contains(err.Error(), "a_pam_user_with_this_username_already_exists") {
-		t.Fatalf("expected a_pam_user_with_this_username_already_exists, got: %v", err)
+	if !strings.Contains(err.Error(), "user_source_conflict") {
+		t.Fatalf("expected user_source_conflict, got: %v", err)
+	}
+}
+
+func TestCreateOIDCUserSkipsUnixPasswordAndRejectsCrossSourceCollisions(t *testing.T) {
+	svc := newLocalTestService(t)
+	seedBasicSettings(t, svc)
+
+	user := &models.User{Username: "john.doe@corp.com", Password: "not-a-local-password", Source: "oidc", Admin: true}
+	if err := svc.CreateUser(user, CreateUserOpts{}); err != nil {
+		t.Fatalf("create OIDC user: %v", err)
+	}
+	if user.Password != "" || user.Source != "oidc" || !user.ExternallyManaged || user.UID != 0 || user.HomeDirectory != "/nonexistent" || !user.DisablePassword {
+		t.Fatalf("unexpected OIDC user fields: %+v", user)
+	}
+
+	local := &models.User{Username: "local-first", Password: "password123", Source: "local"}
+	if err := svc.CreateUser(local, CreateUserOpts{}); err != nil {
+		t.Fatalf("create local user: %v", err)
+	}
+	conflictingOIDC := &models.User{Username: "shared", Source: "oidc"}
+	seedUser(t, svc, models.User{Username: "shared", Source: "pam", ExternallyManaged: true})
+	if err := svc.CreateUser(conflictingOIDC, CreateUserOpts{}); err == nil || !strings.Contains(err.Error(), "user_source_conflict") {
+		t.Fatalf("OIDC/PAM username collision error = %v, want user_source_conflict", err)
+	}
+	seedUser(t, svc, models.User{Username: "local-claimed", Source: "oidc", ExternallyManaged: true})
+	if err := svc.CreateUser(&models.User{Username: "local-claimed", Password: "password123"}, CreateUserOpts{}); err == nil || !strings.Contains(err.Error(), "user_source_conflict") {
+		t.Fatalf("local/OIDC username collision error = %v, want user_source_conflict", err)
+	}
+	seedUser(t, svc, models.User{Username: "claimed", Source: "oidc", ExternallyManaged: true})
+	if err := svc.validateNewPAMIdentity(&models.User{
+		Username: "claimed", UID: 1002, Password: "password123", Shell: "/usr/sbin/nologin", HomeDirectory: "/nonexistent", HomeDirPerms: 0o755,
+	}); err == nil || !strings.Contains(err.Error(), "user_source_conflict") {
+		t.Fatalf("PAM/OIDC username collision error = %v, want user_source_conflict", err)
 	}
 }
 
@@ -811,6 +844,7 @@ func TestListUsersBySourceFilter(t *testing.T) {
 	seedUser(t, svc, models.User{Username: "local1", Password: "hashed", Source: "local"})
 	seedUser(t, svc, models.User{Username: "local2", Password: "hashed", Source: "local"})
 	seedUser(t, svc, models.User{Username: "pam1", Password: "hashed", Source: "pam"})
+	seedUser(t, svc, models.User{Username: "oidc1@example.com", Source: "oidc", ExternallyManaged: true})
 
 	locals, err := svc.ListUsersBySource("local")
 	if err != nil {
@@ -834,6 +868,11 @@ func TestListUsersBySourceFilter(t *testing.T) {
 	}
 	if pams[0].Source != "pam" {
 		t.Fatalf("expected source 'pam', got: %s", pams[0].Source)
+	}
+
+	oidcUsers, err := svc.ListUsersBySource("oidc")
+	if err != nil || len(oidcUsers) != 1 || oidcUsers[0].Source != "oidc" {
+		t.Fatalf("OIDC users = %+v, err=%v", oidcUsers, err)
 	}
 }
 
@@ -905,6 +944,49 @@ func TestCreateUserSetsSourceToLocal(t *testing.T) {
 	}
 	if found.Source != "local" {
 		t.Fatalf("expected Source='local', got: %s", found.Source)
+	}
+}
+
+func TestEditOIDCUserRejectsCredentialChangesAndRevokesSecuritySessions(t *testing.T) {
+	svc := newLocalTestService(t)
+	user := seedUser(t, svc, models.User{
+		Username: "admin@example.com", Source: "oidc", Admin: true, ExternallyManaged: true, OIDCSubject: "subject-1",
+	})
+	seedUserToken(t, svc, user.ID, "oidc-session")
+	confirmGuestActions := true
+	err := svc.EditUser(user.ID, EditUserOpts{
+		Username: user.Username, FullName: "Admin Name", Email: "admin@example.com", Admin: false,
+		Locked: true, ConfirmGuestActions: &confirmGuestActions,
+	})
+	if err != nil {
+		t.Fatalf("edit OIDC account: %v", err)
+	}
+	updated, err := svc.GetUserByID(user.ID)
+	if err != nil || updated.FullName != "Admin Name" || updated.Admin || !updated.Locked || !updated.ConfirmGuestActions {
+		t.Fatalf("updated OIDC user = %+v, err=%v", updated, err)
+	}
+	if got := userTokenCount(t, svc, user.ID); got != 0 {
+		t.Fatalf("old sessions after admin/lock change = %d, want 0", got)
+	}
+
+	for _, opts := range []EditUserOpts{
+		{Username: "renamed@example.com", Admin: true},
+		{Username: user.Username, Password: "password123", Admin: true},
+	} {
+		if err := svc.EditUser(user.ID, opts); err == nil || !strings.Contains(err.Error(), "external_user_read_only") {
+			t.Fatalf("OIDC credential/username edit error = %v, want external_user_read_only", err)
+		}
+	}
+}
+
+func TestDeleteOIDCUserCannotRemoveHome(t *testing.T) {
+	svc := newLocalTestService(t)
+	user := seedUser(t, svc, models.User{Username: "deleteme@example.com", Source: "oidc", ExternallyManaged: true})
+	if err := svc.DeleteUser(user.ID, true); err == nil || !strings.Contains(err.Error(), "external_user_read_only") {
+		t.Fatalf("OIDC home removal error = %v, want external_user_read_only", err)
+	}
+	if err := svc.DeleteUser(user.ID, false); err != nil {
+		t.Fatalf("delete OIDC account: %v", err)
 	}
 }
 

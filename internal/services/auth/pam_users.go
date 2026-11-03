@@ -329,7 +329,7 @@ func (s *Service) validateNewPAMIdentity(user *models.User) error {
 		return userInternalError("username_check_failed", err)
 	}
 	if existing != nil {
-		if existing.Source == "local" {
+		if existing.Source != "pam" {
 			return userConflictError("user_source_conflict")
 		}
 		return userConflictError("username_already_exists")
@@ -608,7 +608,7 @@ func (s *Service) importPamUser(username, sylvePassword string, admin, confirmGu
 		return nil, userInternalError("username_check_failed", err)
 	}
 	if existing != nil {
-		if existing.Source == "local" {
+		if existing.Source != "pam" {
 			return nil, userConflictError("user_source_conflict")
 		}
 		return nil, userConflictError("username_already_exists")

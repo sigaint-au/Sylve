@@ -224,3 +224,16 @@ func TestCreateJWTPAMAuthDisabled(t *testing.T) {
 		t.Fatalf("expected_pam_auth_disabled_got: %v", err)
 	}
 }
+
+func TestCreateJWTPAMRejectsOIDCAccount(t *testing.T) {
+	svc := newAuthTestService(t)
+	originalConfig := config.ParsedConfig
+	config.ParsedConfig = &internal.SylveConfig{Auth: internal.AuthConfig{EnablePAM: true}}
+	t.Cleanup(func() { config.ParsedConfig = originalConfig })
+	if err := svc.DB.Create(&models.User{Username: "jdoe", Source: AuthTypeOIDC, Admin: true}).Error; err != nil {
+		t.Fatalf("seed OIDC user: %v", err)
+	}
+	if _, _, err := svc.CreateJWT("jdoe", "password", "pam", false); err == nil || err.Error() != "user_not_registered_in_sylve" {
+		t.Fatalf("PAM login for OIDC user = %v, want user_not_registered_in_sylve", err)
+	}
+}

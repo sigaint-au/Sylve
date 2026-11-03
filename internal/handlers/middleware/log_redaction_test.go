@@ -44,6 +44,8 @@ func TestShouldRedactAuditPayload(t *testing.T) {
 		want bool
 	}{
 		{path: "/api/auth/login", want: true},
+		{path: "/api/auth/oidc/login/begin", want: true},
+		{path: "/api/auth/oidc/login/finish", want: true},
 		{path: "/api/directory-services/active-directory/join", want: true},
 		{path: "/api/directory-services/kerberos/keytabs/1", want: true},
 		{path: "/api/directory-services-other", want: false},

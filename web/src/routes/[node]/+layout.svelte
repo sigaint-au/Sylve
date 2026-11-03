@@ -391,6 +391,11 @@
 								label: 'PAM',
 								icon: 'mdi--account-arrow-right',
 								href: `/${node}/authentication/users/pam`
+							},
+							{
+								label: 'OIDC',
+								icon: 'mdi--shield-account',
+								href: `/${node}/authentication/users/oidc`
 							}
 						]
 					},

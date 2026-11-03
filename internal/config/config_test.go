@@ -11,6 +11,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -175,8 +176,66 @@ func TestWriteConfigPreservesPAMService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read config: %v", err)
 	}
-	if cfg.Auth != ParsedConfig.Auth {
+	if !reflect.DeepEqual(cfg.Auth, ParsedConfig.Auth) {
 		t.Fatalf("auth config = %+v, want %+v", cfg.Auth, ParsedConfig.Auth)
+	}
+}
+
+func TestOIDCConfigDefaultsAndEnablement(t *testing.T) {
+	previous := ParsedConfig
+	t.Cleanup(func() { ParsedConfig = previous })
+
+	ParsedConfig = nil
+	if IsOIDCEnabled() {
+		t.Fatal("OIDC must be disabled without config")
+	}
+	if got := GetOIDCConfig(); got.ProviderName != "OIDC" || got.UsernameClaim != "preferred_username" || got.GroupsClaim != "groups" || !reflect.DeepEqual(got.Scopes, []string{"openid", "profile", "email"}) {
+		t.Fatalf("OIDC defaults = %+v", got)
+	}
+
+	ParsedConfig = &internal.SylveConfig{Auth: internal.AuthConfig{OIDC: internal.OIDCConfig{
+		Enabled: true, IssuerURL: " https://id.example/ ", ClientID: " app ",
+	}}}
+	if !IsOIDCEnabled() {
+		t.Fatal("OIDC should enable with an explicit flag, issuer, and client ID")
+	}
+	got := GetOIDCConfig()
+	if got.IssuerURL != "https://id.example/" || got.ClientID != "app" {
+		t.Fatalf("OIDC issuer and client ID should be trimmed: %+v", got)
+	}
+
+	ParsedConfig.Auth.OIDC.ClientID = " \t "
+	if IsOIDCEnabled() {
+		t.Fatal("OIDC must remain disabled without a non-empty client ID")
+	}
+}
+
+func TestOIDCConfigUsesConfiguredValuesAndCopiesScopes(t *testing.T) {
+	previous := ParsedConfig
+	t.Cleanup(func() { ParsedConfig = previous })
+	scopes := []string{"openid", "groups"}
+	ParsedConfig = &internal.SylveConfig{Auth: internal.AuthConfig{OIDC: internal.OIDCConfig{
+		Enabled: true, ProviderName: "  Corp SSO ", IssuerURL: "https://id.example", ClientID: "client",
+		Scopes: scopes, UsernameClaim: " upn ", GroupsClaim: " roles ",
+	}}}
+
+	got := GetOIDCConfig()
+	if got.ProviderName != "Corp SSO" || got.UsernameClaim != "upn" || got.GroupsClaim != "roles" || !reflect.DeepEqual(got.Scopes, scopes) {
+		t.Fatalf("OIDC configured values = %+v", got)
+	}
+	got.Scopes[0] = "changed"
+	if scopes[0] != "openid" {
+		t.Fatal("GetOIDCConfig returned the configured scopes slice")
+	}
+}
+
+func TestExampleConfigIncludesDisabledOIDCDefaults(t *testing.T) {
+	cfg, err := ReadConfig(filepath.Join("..", "..", "config.example.json"))
+	if err != nil {
+		t.Fatalf("read example config: %v", err)
+	}
+	if cfg.Auth.OIDC.Enabled {
+		t.Fatal("OIDC must be disabled in the example config")
 	}
 }
 

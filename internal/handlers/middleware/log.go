@@ -76,6 +76,7 @@ func shouldRedactAuditPayload(path string) bool {
 		isMetadataOnlyUploadAuditPath(path) ||
 		path == "/api/iscsi/config" ||
 		auditPathMatches(path, "/api/auth/login") ||
+		auditPathMatches(path, "/api/auth/oidc/login") ||
 		auditPathMatches(path, "/api/auth/passkeys/login") ||
 		path == "/api/auth/passkeys/register/finish" ||
 		auditPathMatches(path, "/api/dynamic-dns") ||
@@ -754,7 +755,8 @@ func RequestLoggerMiddleware(telemetryDB *gorm.DB, authService *authService.Serv
 		redactResponse := shouldRedactAuditResponse(c.Request.URL.Path)
 		captureResponse := !redactResponse ||
 			c.Request.URL.Path == "/api/auth/login" ||
-			c.Request.URL.Path == "/api/auth/passkeys/login/finish"
+			c.Request.URL.Path == "/api/auth/passkeys/login/finish" ||
+			c.Request.URL.Path == "/api/auth/oidc/login/finish"
 		bw := &bodyWriter{
 			body:           bytes.NewBufferString(""),
 			ResponseWriter: c.Writer,
@@ -767,6 +769,8 @@ func RequestLoggerMiddleware(telemetryDB *gorm.DB, authService *authService.Serv
 		if err != nil && (c.Request.URL.Path == "/api/auth/login" ||
 			c.Request.URL.Path == "/api/auth/passkeys/login/begin" ||
 			c.Request.URL.Path == "/api/auth/passkeys/login/finish" ||
+			c.Request.URL.Path == "/api/auth/oidc/login/begin" ||
+			c.Request.URL.Path == "/api/auth/oidc/login/finish" ||
 			strings.HasPrefix(c.Request.URL.Path, "/api/cluster")) {
 
 			if strings.HasPrefix(c.Request.URL.Path, "/api/cluster") {
@@ -903,7 +907,7 @@ func RequestLoggerMiddleware(telemetryDB *gorm.DB, authService *authService.Serv
 		log.Ended = time.Now()
 		log.Duration = time.Since(log.Started)
 
-		if (c.Request.URL.Path == "/api/auth/login" || c.Request.URL.Path == "/api/auth/passkeys/login/finish") && cStatus == 200 {
+		if (c.Request.URL.Path == "/api/auth/login" || c.Request.URL.Path == "/api/auth/passkeys/login/finish" || c.Request.URL.Path == "/api/auth/oidc/login/finish") && cStatus == 200 {
 			var resBody struct {
 				Data struct {
 					Token string `json:"token"`

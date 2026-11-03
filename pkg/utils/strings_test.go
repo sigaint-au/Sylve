@@ -134,6 +134,34 @@ func TestRemoveSpaces(t *testing.T) {
 	}
 }
 
+func TestIsValidOIDCUsername(t *testing.T) {
+	tests := []struct {
+		username string
+		want     bool
+	}{
+		{username: "john.doe@corp.com", want: true},
+		{username: "Jane_Doe-2", want: true},
+		{username: "a", want: true},
+		{username: strings.Repeat("a", 128), want: true},
+		{username: "", want: false},
+		{username: strings.Repeat("a", 129), want: false},
+		{username: "root", want: false},
+		{username: "ADMIN", want: false},
+		{username: "superuser", want: false},
+		{username: "nobody", want: false},
+		{username: "-jdoe", want: false},
+		{username: "jdoe+tag@example.com", want: false},
+		{username: "jdoe@example.com/", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.username, func(t *testing.T) {
+			if got := IsValidOIDCUsername(tt.username); got != tt.want {
+				t.Fatalf("IsValidOIDCUsername(%q) = %t, want %t", tt.username, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGenerateRandomUUID(t *testing.T) {
 	uuids := make(map[string]bool)
 	for i := 0; i < 100; i++ {

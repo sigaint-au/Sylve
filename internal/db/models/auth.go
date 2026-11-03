@@ -15,6 +15,7 @@ import (
 type User struct {
 	ID                  uint      `gorm:"primarykey" json:"id"`
 	Username            string    `gorm:"unique" json:"username"`
+	OIDCSubject         string    `gorm:"column:oidc_subject;index" json:"oidcSubject,omitempty"`
 	FullName            string    `json:"fullName"`
 	Email               string    `json:"email"`
 	Password            string    `json:"-"`

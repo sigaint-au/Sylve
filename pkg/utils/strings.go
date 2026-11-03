@@ -35,6 +35,7 @@ const Base62Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 const letters = "abcdefghijklmnopqrstuvwxyz"
 
 var validFilenamePattern = regexp.MustCompile(`^[^\\/:*?"<>|]{1,255}$`)
+var validOIDCUsernamePattern = regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9._@-]{0,127}$`)
 
 // BcryptPasswordHasher provides the production password hashing behavior.
 type BcryptPasswordHasher struct{}
@@ -284,6 +285,17 @@ func IsValidUsername(username string) bool {
 
 	regex := regexp.MustCompile(`^[a-z_]([a-z0-9_-]{0,31}|[a-z0-9_-]{0,30}\$)$`)
 	return regex.MatchString(username)
+}
+
+func IsValidOIDCUsername(username string) bool {
+	if username == "" || len(username) > 128 {
+		return false
+	}
+	switch strings.ToLower(username) {
+	case "root", "admin", "superuser", "nobody":
+		return false
+	}
+	return validOIDCUsernamePattern.MatchString(username)
 }
 
 func IsValidWorkgroup(name string) bool {

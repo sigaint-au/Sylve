@@ -10,7 +10,7 @@
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import type { User } from '$lib/types/auth';
 	import { handleAPIError, isAPIResponse } from '$lib/utils/http';
-	import { isValidEmail, isValidUsername } from '$lib/utils/string';
+	import { isValidEmail, isValidOIDCUsername, isValidUsername } from '$lib/utils/string';
 	import { onDestroy } from 'svelte';
 	import { toast } from 'svelte-sonner';
 
@@ -21,6 +21,7 @@
 		edit?: boolean;
 		reload?: boolean;
 		hostname: string;
+		source?: 'local' | 'oidc';
 	}
 
 	let {
@@ -29,7 +30,8 @@
 		user,
 		edit = false,
 		reload = $bindable(),
-		hostname
+		hostname,
+		source = 'local'
 	}: Props = $props();
 
 	function makeDefaults() {
@@ -40,7 +42,8 @@
 			password: '',
 			confirmPassword: '',
 			admin: edit && user ? user.admin : false,
-			confirmGuestActions: edit && user ? user.confirmGuestActions : false
+			confirmGuestActions: edit && user ? user.confirmGuestActions : false,
+			locked: edit && user ? user.locked : false
 		};
 	}
 
@@ -59,7 +62,9 @@
 		if (!properties.username) return 'Username is required';
 		if (
 			!(edit && user && properties.username === user.username) &&
-			!isValidUsername(properties.username)
+			!(source === 'oidc'
+				? isValidOIDCUsername(properties.username)
+				: isValidUsername(properties.username))
 		)
 			return 'Invalid username format';
 		if (!edit && users.some((u) => u.username === properties.username))
@@ -67,13 +72,17 @@
 		if (edit && user && users.some((u) => u.id !== user!.id && u.username === properties.username))
 			return 'Username already exists';
 		if (properties.email && !isValidEmail(properties.email)) return 'Invalid email address';
-		if (!edit) {
+		if (source === 'local' && !edit) {
 			if (!properties.password) return 'Password is required';
 			if (properties.password.length < 8) return 'Password must be at least 8 characters';
 		}
-		if (new TextEncoder().encode(properties.password).length > 72)
+		if (source === 'local' && new TextEncoder().encode(properties.password).length > 72)
 			return 'Password must be 72 bytes or fewer';
-		if (properties.password && properties.confirmPassword !== properties.password)
+		if (
+			source === 'local' &&
+			properties.password &&
+			properties.confirmPassword !== properties.password
+		)
 			return 'Passwords do not match';
 
 		return '';
@@ -99,9 +108,10 @@
 			fullName: properties.fullName,
 			username: properties.username,
 			email: properties.email,
-			password: properties.password,
+			...(source === 'local' ? { password: properties.password } : {}),
 			admin: properties.admin,
-			confirmGuestActions: properties.confirmGuestActions
+			confirmGuestActions: properties.confirmGuestActions,
+			...(source === 'oidc' ? { source, locked: properties.locked } : {})
 		};
 		const requestHostname = hostname;
 
@@ -173,14 +183,22 @@
 					icon={!edit ? 'icon-[mdi--user-plus]' : 'icon-[mdi--user-edit]'}
 					size="h-5 w-5"
 					gap="gap-2"
-					title={!edit ? 'Create User' : `Edit User - ${user?.username}`}
+					title={source === 'oidc'
+						? !edit
+							? 'Create OIDC User'
+							: `Edit OIDC User - ${user?.username}`
+						: !edit
+							? 'Create User'
+							: `Edit User - ${user?.username}`}
 				/>
 			</Dialog.Title>
 		</Dialog.Header>
 
 		<div class="space-y-3 overflow-y-auto pt-3">
 			<input type="text" style="display:none" autocomplete="username" />
-			<input type="password" style="display:none" autocomplete="new-password" />
+			{#if source === 'local'}
+				<input type="password" style="display:none" autocomplete="new-password" />
+			{/if}
 
 			<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 				<CustomValueInput
@@ -200,22 +218,24 @@
 				placeholder="john@example.com"
 				bind:value={properties.email}
 			/>
-			<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-				<CustomValueInput
-					label="Password"
-					placeholder="••••••••"
-					type="password"
-					revealOnFocus={true}
-					bind:value={properties.password}
-				/>
-				<CustomValueInput
-					label="Confirm Password"
-					placeholder="••••••••"
-					type="password"
-					revealOnFocus={true}
-					bind:value={properties.confirmPassword}
-				/>
-			</div>
+			{#if source === 'local'}
+				<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+					<CustomValueInput
+						label="Password"
+						placeholder="••••••••"
+						type="password"
+						revealOnFocus={true}
+						bind:value={properties.password}
+					/>
+					<CustomValueInput
+						label="Confirm Password"
+						placeholder="••••••••"
+						type="password"
+						revealOnFocus={true}
+						bind:value={properties.confirmPassword}
+					/>
+				</div>
+			{/if}
 			<div class="flex flex-wrap items-center gap-6 pt-2">
 				<div class="flex items-center gap-2">
 					<Checkbox id="admin" bind:checked={properties.admin} />
@@ -236,6 +256,12 @@
 						</Tooltip.Content>
 					</Tooltip.Root>
 				</div>
+				{#if source === 'oidc' && edit}
+					<div class="flex items-center gap-2">
+						<Checkbox id="oidc-locked" bind:checked={properties.locked} />
+						<Label for="oidc-locked" class="cursor-pointer text-sm">Locked</Label>
+					</div>
+				{/if}
 			</div>
 		</div>
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { getLoginConfig, revokeJWT } from '$lib/api/auth';
+	import { beginOIDCLogin, getLoginConfig, revokeJWT } from '$lib/api/auth';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
@@ -42,6 +42,8 @@
 	let authType = $state('sylve');
 	let remember = $state(false);
 	let pamEnabled = $state(true);
+	let oidcEnabled = $state(false);
+	let oidcProviderName = $state('OIDC');
 
 	watch(
 		() => language,
@@ -71,8 +73,24 @@
 		}
 	);
 
+	watch(
+		() => oidcEnabled,
+		(enabled) => {
+			if (!enabled && authType === 'oidc') authType = 'sylve';
+		}
+	);
+
 	async function submitPasswordLogin() {
 		if (loading || loadingPasskey) return;
+		if (authType === 'oidc') {
+			loading = true;
+			try {
+				await beginOIDCLogin(remember);
+			} finally {
+				loading = false;
+			}
+			return;
+		}
 
 		try {
 			await onLogin(username, password, authType, remember, toLoginPath);
@@ -104,6 +122,8 @@
 		void (async () => {
 			const loginConfig = await getLoginConfig();
 			pamEnabled = loginConfig.pamEnabled;
+			oidcEnabled = loginConfig.oidcEnabled;
+			oidcProviderName = loginConfig.oidcProviderName;
 		})();
 	});
 
@@ -125,52 +145,56 @@
 		</Card.Header>
 
 		<Card.Content class="space-y-4 p-6">
-			<div class="flex items-center gap-2">
-				<Label for="username" class="w-44">Username</Label>
-				<Input
-					id="username"
-					class="h-8 w-full"
-					type="text"
-					placeholder="Enter your username"
-					bind:value={username}
-					autocomplete="off"
-					required
-				/>
-			</div>
-			<div class="flex items-center gap-2">
-				<Label for="password" class="w-44">Password</Label>
-				<div class="relative w-full">
+			{#if authType !== 'oidc'}
+				<div class="flex items-center gap-2">
+					<Label for="username" class="w-44">Username</Label>
 					<Input
-						id="password"
-						type={passwordVisible ? 'text' : 'password'}
-						placeholder="●●●●●●●●"
+						id="username"
+						class="h-8 w-full"
+						type="text"
+						placeholder="Enter your username"
+						bind:value={username}
 						autocomplete="off"
-						class="h-8 w-full pr-9"
-						bind:value={password}
 						required
 					/>
-					<button
-						type="button"
-						class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-0 flex w-9 items-center justify-center rounded-r-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
-						onclick={() => (passwordVisible = !passwordVisible)}
-						aria-label={passwordVisible ? 'Hide password' : 'Show password'}
-						aria-pressed={passwordVisible}
-					>
-						<span
-							class={passwordVisible
-								? 'icon-[lucide--eye-off] size-4'
-								: 'icon-[lucide--eye] size-4'}
-							aria-hidden="true"
-						></span>
-					</button>
 				</div>
-			</div>
+				<div class="flex items-center gap-2">
+					<Label for="password" class="w-44">Password</Label>
+					<div class="relative w-full">
+						<Input
+							id="password"
+							type={passwordVisible ? 'text' : 'password'}
+							placeholder="●●●●●●●●"
+							autocomplete="off"
+							class="h-8 w-full pr-9"
+							bind:value={password}
+							required
+						/>
+						<button
+							type="button"
+							class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-0 flex w-9 items-center justify-center rounded-r-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+							onclick={() => (passwordVisible = !passwordVisible)}
+							aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+							aria-pressed={passwordVisible}
+						>
+							<span
+								class={passwordVisible
+									? 'icon-[lucide--eye-off] size-4'
+									: 'icon-[lucide--eye] size-4'}
+								aria-hidden="true"
+							></span>
+						</button>
+					</div>
+				</div>
+			{/if}
 
 			<div class="flex items-center gap-2">
 				<Label for="realm" class="w-44">Realm</Label>
 				<Select.Root type="single" bind:value={authType}>
 					<Select.Trigger class="h-8 w-full">
-						{#if authType === 'pam' && pamEnabled}
+						{#if authType === 'oidc' && oidcEnabled}
+							{oidcProviderName}
+						{:else if authType === 'pam' && pamEnabled}
 							PAM
 						{:else}
 							Sylve
@@ -179,6 +203,9 @@
 					<Select.Content>
 						{#if pamEnabled}
 							<Select.Item value="pam">PAM</Select.Item>
+						{/if}
+						{#if oidcEnabled}
+							<Select.Item value="oidc">{oidcProviderName}</Select.Item>
 						{/if}
 						<Select.Item value="sylve">Sylve</Select.Item>
 					</Select.Content>
@@ -277,7 +304,7 @@
 					{#if loading}
 						<span class="icon-[line-md--loading-loop] h-4 w-4"></span>
 					{:else}
-						Login
+						{authType === 'oidc' ? `Continue with ${oidcProviderName}` : 'Login'}
 					{/if}
 				</Button>
 			</div>

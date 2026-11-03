@@ -455,6 +455,134 @@
                 }
             }
         },
+        "/auth/oidc/login/begin": {
+            "post": {
+                "description": "Create an OIDC authorization URL using Authorization Code with PKCE",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Begin OIDC login",
+                "parameters": [
+                    {
+                        "description": "OIDC login options",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.BeginOIDCLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_BeginOIDCLoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/oidc/login/finish": {
+            "post": {
+                "description": "Validate the OIDC authorization response and create a Sylve session",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Finish OIDC login",
+                "parameters": [
+                    {
+                        "description": "OIDC callback",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handlers_auth.FinishOIDCLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_SuccessfulLogin"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/passkeys/login/begin": {
             "post": {
                 "description": "Start a discoverable WebAuthn login ceremony",
@@ -836,7 +964,8 @@
                     {
                         "enum": [
                             "local",
-                            "pam"
+                            "pam",
+                            "oidc"
                         ],
                         "type": "string",
                         "description": "Account source",
@@ -883,7 +1012,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Create a new local Sylve user; passwords are limited to 72 UTF-8 bytes",
+                "description": "Create a local Sylve user or a passwordless OIDC user",
                 "consumes": [
                     "application/json"
                 ],
@@ -893,10 +1022,10 @@
                 "tags": [
                     "Users"
                 ],
-                "summary": "Create local user",
+                "summary": "Create user",
                 "parameters": [
                     {
-                        "description": "Local user",
+                        "description": "Local or OIDC user",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -34004,6 +34133,23 @@
                 }
             }
         },
+        "github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_BeginOIDCLoginResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/internal_handlers_auth.BeginOIDCLoginResponse"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_GroupMutationResult": {
             "type": "object",
             "properties": {
@@ -46532,6 +46678,22 @@
                 }
             }
         },
+        "internal_handlers_auth.BeginOIDCLoginRequest": {
+            "type": "object",
+            "properties": {
+                "remember": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "internal_handlers_auth.BeginOIDCLoginResponse": {
+            "type": "object",
+            "properties": {
+                "authUrl": {
+                    "type": "string"
+                }
+            }
+        },
         "internal_handlers_auth.BeginPasskeyRegistrationRequest": {
             "type": "object",
             "required": [
@@ -46691,6 +46853,13 @@
                 "shell": {
                     "type": "string"
                 },
+                "source": {
+                    "type": "string",
+                    "enum": [
+                        "local",
+                        "oidc"
+                    ]
+                },
                 "sshPublicKey": {
                     "type": "string"
                 },
@@ -46775,6 +46944,23 @@
                 }
             }
         },
+        "internal_handlers_auth.FinishOIDCLoginRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "state"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "maxLength": 8192
+                },
+                "state": {
+                    "type": "string",
+                    "maxLength": 128
+                }
+            }
+        },
         "internal_handlers_auth.FinishPasskeyLoginRequest": {
             "type": "object",
             "required": [
@@ -46856,6 +47042,12 @@
         "internal_handlers_auth.LoginConfig": {
             "type": "object",
             "properties": {
+                "oidcEnabled": {
+                    "type": "boolean"
+                },
+                "oidcProviderName": {
+                    "type": "string"
+                },
                 "pamEnabled": {
                     "type": "boolean"
                 }

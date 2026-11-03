@@ -2059,6 +2059,17 @@ definitions:
       status:
         type: string
     type: object
+  github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_BeginOIDCLoginResponse:
+    properties:
+      data:
+        $ref: '#/definitions/internal_handlers_auth.BeginOIDCLoginResponse'
+      error:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
   github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_GroupMutationResult:
     properties:
       data:
@@ -10430,6 +10441,16 @@ definitions:
     - content
     - title
     type: object
+  internal_handlers_auth.BeginOIDCLoginRequest:
+    properties:
+      remember:
+        type: boolean
+    type: object
+  internal_handlers_auth.BeginOIDCLoginResponse:
+    properties:
+      authUrl:
+        type: string
+    type: object
   internal_handlers_auth.BeginPasskeyRegistrationRequest:
     properties:
       userId:
@@ -10537,6 +10558,11 @@ definitions:
         type: integer
       shell:
         type: string
+      source:
+        enum:
+        - local
+        - oidc
+        type: string
       sshPublicKey:
         type: string
       uid:
@@ -10597,6 +10623,18 @@ definitions:
     required:
     - admin
     type: object
+  internal_handlers_auth.FinishOIDCLoginRequest:
+    properties:
+      code:
+        maxLength: 8192
+        type: string
+      state:
+        maxLength: 128
+        type: string
+    required:
+    - code
+    - state
+    type: object
   internal_handlers_auth.FinishPasskeyLoginRequest:
     properties:
       credential:
@@ -10652,6 +10690,10 @@ definitions:
     type: object
   internal_handlers_auth.LoginConfig:
     properties:
+      oidcEnabled:
+        type: boolean
+      oidcProviderName:
+        type: string
       pamEnabled:
         type: boolean
     type: object
@@ -12515,6 +12557,91 @@ paths:
       summary: Logout
       tags:
       - Authentication
+  /auth/oidc/login/begin:
+    post:
+      consumes:
+      - application/json
+      description: Create an OIDC authorization URL using Authorization Code with
+        PKCE
+      parameters:
+      - description: OIDC login options
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers_auth.BeginOIDCLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_BeginOIDCLoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+      summary: Begin OIDC login
+      tags:
+      - Authentication
+  /auth/oidc/login/finish:
+    post:
+      consumes:
+      - application/json
+      description: Validate the OIDC authorization response and create a Sylve session
+      parameters:
+      - description: OIDC callback
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers_auth.FinishOIDCLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-internal_handlers_auth_SuccessfulLogin'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "413":
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
+      summary: Finish OIDC login
+      tags:
+      - Authentication
   /auth/passkeys/login/begin:
     post:
       description: Start a discoverable WebAuthn login ceremony
@@ -12758,6 +12885,7 @@ paths:
         enum:
         - local
         - pam
+        - oidc
         in: query
         name: source
         type: string
@@ -12792,10 +12920,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new local Sylve user; passwords are limited to 72 UTF-8
-        bytes
+      description: Create a local Sylve user or a passwordless OIDC user
       parameters:
-      - description: Local user
+      - description: Local or OIDC user
         in: body
         name: request
         required: true
@@ -12834,7 +12961,7 @@ paths:
             $ref: '#/definitions/github_com_alchemillahq_sylve_internal.APIResponse-any'
       security:
       - BearerAuth: []
-      summary: Create local user
+      summary: Create user
       tags:
       - Users
   /auth/users/{userId}:
